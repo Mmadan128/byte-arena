@@ -6,6 +6,8 @@ from app.models import Round
 from sqlalchemy import select
 from app.models.problem import Problem
 
+from app.websocket.battle import manager
+
 QUEUE_KEY = "matchmaking:queue"
 
 async def pick_problem(db: AsyncSession) -> int:
@@ -77,4 +79,25 @@ async def try_match(db: AsyncSession):
     db.add(match)
     await db.commit()  
 
+    await manager.send_to_user(
+    user1,
+    {
+        "type": "match_started",
+        "match_id": match.match_id,
+        "opponent_id": user2,
+        "problem_id": problem_id,
+    }
+)
+
+    await manager.send_to_user(
+     user2,
+    {
+        "type": "match_started",
+        "match_id": match.match_id,
+        "opponent_id": user1,
+        "problem_id": problem_id,
+    }
+)
+
     return match
+

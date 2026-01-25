@@ -22,6 +22,9 @@ class User(Base):
     )
     cf_rating: Mapped[int | None] = mapped_column(Integer)
 
+    cf_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    cf_verify_token: Mapped[str | None] = mapped_column(String)
+    
     platform_rating: Mapped[int] = mapped_column(Integer, default=1200)
     profile_completed: Mapped[bool] = mapped_column(Boolean, default=False)
 

@@ -15,3 +15,8 @@ async def fetch_cf_user(handle: str) -> dict | None:
         return None
 
     return data["result"][0]
+
+def verify_cf_ownership(cf_user: dict, token: str) -> bool:
+    org = cf_user.get("organization", "")
+    return token in org
+
