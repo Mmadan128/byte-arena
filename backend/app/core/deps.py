@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.core.security import SECRET_KEY, ALGORITHM
 from app.db.session import AsyncSessionLocal
 from app.models.user import User
-
+from fastapi import WebSocket
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -46,3 +46,31 @@ async def require_profile_completed(
             detail="Complete your profile first",
         )
     return user
+
+
+async def get_current_user_ws(websocket: WebSocket) -> User:
+    token = websocket.query_params.get("token")
+
+    if not token:
+        await websocket.close(code=1008)
+        raise RuntimeError("Missing token")
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            raise JWTError()
+    except JWTError:
+        await websocket.close(code=1008)
+        raise RuntimeError("Invalid token")
+
+    async with AsyncSessionLocal() as db:
+        user = await db.scalar(
+            select(User).where(User.user_id == int(user_id))
+        )
+
+        if not user:
+            await websocket.close(code=1008)
+            raise RuntimeError("User not found")
+
+        return user

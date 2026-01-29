@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from app.db.session import AsyncSessionLocal
 from app.models.user import User
-
+import secrets
 
 SECRET_KEY = "meow"
 ALGORITHM = "HS256"
@@ -58,3 +58,6 @@ async def get_current_user(
         )
 
     return user
+
+def generate_verification_token() -> str:
+    return f"bytearena-{secrets.token_hex(6)}"
